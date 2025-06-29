@@ -1,0 +1,54 @@
+# Speech and TTS
+speechrecognition
+pyttsx3
+pyaudio
+pywhatkit
+pydub
+
+# Web & API
+requests
+beautifulsoup4
+feedparser
+wikipedia
+geopy
+geocoder
+google-api-python-client
+google-auth-oauthlib
+google-auth
+
+# Email handling
+smtplib
+imapclient
+email
+pycaw
+pyjokes
+
+# Image and video
+pillow
+opencv-python
+pytesseract
+numpy
+
+# Automation and GUI
+pyautogui
+tk
+
+# Browser automation
+selenium
+
+# Utilities
+psutil
+fuzzywuzzy
+python-Levenshtein
+platformdirs
+
+# Audio control
+comtypes
+
+# Required for Chrome automation (headless support optional)
+webdriver-manager
+
+# Optional – timezone support
+pytz
+
+# files
