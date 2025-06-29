@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Bubble</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .circle-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .outer-glow {
+            position: absolute;
+            inset: 0;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(40px);
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%);
+            transition: all 0.1s ease;
+        }
+
+        .main-circle {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 4px solid rgba(147, 51, 234, 0.8);
+            background: radial-gradient(circle, transparent 60%, rgba(147, 51, 234, 0.1) 100%);
+            box-shadow: 
+                0 0 20px rgba(147, 51, 234, 0.5),
+                0 0 40px rgba(147, 51, 234, 0.3),
+                0 0 80px rgba(147, 51, 234, 0.1),
+                inset 0 0 20px rgba(147, 51, 234, 0.1);
+            transition: all 0.1s ease;
+        }
+
+        .inner-highlight {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 8px;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.3);
+            filter: blur(2px);
+        }
+
+        .vibration-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(147, 51, 234, 0.6);
+            top: 50%;
+            left: 50%;
+            transform-origin: center;
+            opacity: 0;
+        }
+
+        .mic-button {
+            position: relative;
+            padding: 16px;
+            border-radius: 50%;
+            border: 2px solid #4b5563;
+            background: #1f2937;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.1);
+        }
+
+        .mic-button.active {
+            background: #7c3aed;
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+        }
+
+        .mic-icon {
+            width: 32px;
+            height: 32px;
+            color: #9ca3af;
+            transition: color 0.3s ease;
+        }
+
+        .mic-button.active .mic-icon {
+            color: white;
+        }
+
+        .status-text {
+            text-align: center;
+            color: white;
+        }
+
+        .status-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .status-subtitle {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .audio-level {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .audio-level span {
+            font-size: 12px;
+            color: #a855f7;
+        }
+
+        .level-bar {
+            width: 128px;
+            height: 8px;
+            background: #1f2937;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .level-fill {
+            height: 100%;
+            background: linear-gradient(to right, #7c3aed, #a855f7);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        @keyframes ping {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            75%, 100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .ping {
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="circle-container">
+            <div class="outer-glow" id="outerGlow"></div>
+            <div class="main-circle" id="mainCircle">
+                <div class="inner-highlight" id="innerHighlight"></div>
+            </div>
+            <div id="particles"></div>
+        </div>
+
+        <button class="mic-button" id="micButton">
+            <svg class="mic-icon" id="micIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+            </svg>
+        </button>
+
+        <div class="status-text">
+            <p class="status-title" id="statusTitle">Click to start</p>
+            <p class="status-subtitle" id="statusSubtitle">Microphone is off</p>
+            <div class="audio-level" id="audioLevel" style="display: none;">
+                <span>Audio Level:</span>
+                <div class="level-bar">
+                    <div class="level-fill" id="levelFill"></div>
+                </div>
+            </div>
+        </div>
+        <div id="assistantResponse" style="margin-top: 2rem; color: #a855f7; font-size: 1.1rem; text-align: center;"></div>
+    </div>
+
+    <script>
+        let isListening = false;
+        let audioContext = null;
+        let analyser = null;
+        let mediaRecorder = null;
+        let animationFrame = null;
+        let recordedChunks = [];
+
+        const micButton = document.getElementById('micButton');
+        const micIcon = document.getElementById('micIcon');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusSubtitle = document.getElementById('statusSubtitle');
+        const audioLevel = document.getElementById('audioLevel');
+        const levelFill = document.getElementById('levelFill');
+        const outerGlow = document.getElementById('outerGlow');
+        const mainCircle = document.getElementById('mainCircle');
+        const innerHighlight = document.getElementById('innerHighlight');
+        const particles = document.getElementById('particles');
+
+        // Microphone off icon
+        const micOffIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-3a1 1 0 011-1h1m0 0V5a2 2 0 012-2h2a2 2 0 012 2v6m0 0V9a2 2 0 012-2h2a2 2 0 012 2v3a1 1 0 01-1 1h-1.586l-4.707 4.707A1 1 0 0110 16v-1z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>`;
+
+        // Microphone on icon  
+        const micOnIcon = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>`;
+
+        async function startListening() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                recordedChunks = [];
+                // Use audio/webm for best compatibility
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+                mediaRecorder.onstop = function() {
+                    sendAudioToServer();
+                };
+                mediaRecorder.start();
+                isListening = true;
+                updateUI();
+                function updateAudioLevel() {
+                    if (!isListening) return;
+                    analyser.getByteFrequencyData(dataArray);
+                    const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+                    updateVisuals(average);
+                    animationFrame = requestAnimationFrame(updateAudioLevel);
+                }
+                updateAudioLevel();
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Error accessing microphone. Please check permissions.');
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            if (audioContext) {
+                audioContext.close();
+            }
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            updateUI();
+            resetVisuals();
+        }
+
+        function sendAudioToServer() {
+            const responseDiv = document.getElementById('assistantResponse');
+            responseDiv.textContent = 'Processing...';
+            // Use audio/webm here to match the recording format
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', blob, 'audio.webm');
+            fetch('/process_audio', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseDiv = document.getElementById('assistantResponse');
+                if (data.response) {
+                    let isTranslation = false;
+                    let translatedText = '';
+                    let lang = '';
+                    try {
+                        if (typeof data.response === 'string' && data.response.trim().startsWith('{')) {
+                            const parsed = JSON.parse(data.response.replace(/'/g, '"'));
+                            if (parsed.translated && parsed.lang) {
+                                isTranslation = true;
+                                translatedText = parsed.translated;
+                                lang = parsed.lang;
+                            }
+                        }
+                    } catch (e) { /* Not a translation JSON */ }
+                    function speakWithVoices(text, lang) {
+                        let voices = window.speechSynthesis.getVoices();
+                        let voice = null;
+                        voice = voices.find(v => v.lang && v.lang.toLowerCase() === lang.toLowerCase());
+                        if (!voice) {
+                            voice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.toLowerCase()));
+                        }
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        if (voice) {
+                            utterance.voice = voice;
+                            utterance.lang = voice.lang;
+                        } else {
+                            utterance.lang = lang || 'en';
+                        }
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(utterance);
+                    }
+                    if (isTranslation) {
+                        responseDiv.textContent = 'Translation: ' + translatedText;
+                        if ('speechSynthesis' in window) {
+                            // If voices are not loaded yet, wait for them
+                            if (window.speechSynthesis.getVoices().length === 0) {
+                                window.speechSynthesis.onvoiceschanged = function() {
+                                    speakWithVoices(translatedText, lang);
+                                };
+                            } else {
+                                speakWithVoices(translatedText, lang);
+                            }
+                        }
+                    } else {
+                        responseDiv.textContent = 'Assistant: ' + data.response;
+                        if ('speechSynthesis' in window) {
+                            if (window.speechSynthesis.getVoices().length === 0) {
+                                window.speechSynthesis.onvoiceschanged = function() {
+                                    speakWithVoices(data.response, 'en');
+                                };
+                            } else {
+                                speakWithVoices(data.response, 'en');
+                            }
+                        }
+                    }
+                } else if (data.error) {
+                    responseDiv.textContent = 'Error: ' + data.error;
+                } else {
+                    responseDiv.textContent = 'No response from assistant.';
+                }
+            })
+            .catch(err => {
+                responseDiv.textContent = 'Error: ' + err;
+            });
+        }
+
+        function updateUI() {
+            if (isListening) {
+                micButton.classList.add('active');
+                micIcon.innerHTML = micOnIcon;
+                statusTitle.textContent = 'Listening...';
+                statusSubtitle.textContent = 'Speak to see the circle vibrate';
+                audioLevel.style.display = 'flex';
+            } else {
+                micButton.classList.remove('active');
+                micIcon.innerHTML = micOffIcon;
+                statusTitle.textContent = 'Click to start';
+                statusSubtitle.textContent = 'Microphone is off';
+                audioLevel.style.display = 'none';
+            }
+        }
+
+        function updateVisuals(audioLevelValue) {
+            const vibrationIntensity = Math.min(audioLevelValue / 50, 2);
+            const glowIntensity = Math.min(audioLevelValue / 30, 1);
+            
+            // Update level bar
+            levelFill.style.width = `${Math.min((audioLevelValue / 100) * 100, 100)}%`;
+            
+            // Update outer glow
+            outerGlow.style.width = `${300 + vibrationIntensity * 20}px`;
+            outerGlow.style.height = `${300 + vibrationIntensity * 20}px`;
+            outerGlow.style.background = `radial-gradient(circle, rgba(147, 51, 234, ${0.3 + glowIntensity * 0.4}) 0%, transparent 70%)`;
+            outerGlow.style.transform = `scale(${1 + vibrationIntensity * 0.1})`;
+            
+            // Update main circle
+            mainCircle.style.borderColor = `rgba(147, 51, 234, ${0.8 + glowIntensity * 0.2})`;
+            mainCircle.style.boxShadow = `
+                0 0 20px rgba(147, 51, 234, ${0.5 + glowIntensity * 0.3}),
+                0 0 40px rgba(147, 51, 234, ${0.3 + glowIntensity * 0.2}),
+                0 0 80px rgba(147, 51, 234, ${0.1 + glowIntensity * 0.1}),
+                inset 0 0 20px rgba(147, 51, 234, ${0.1 + glowIntensity * 0.1})
+            `;
+            mainCircle.style.transform = `scale(${1 + vibrationIntensity * 0.05}) rotate(${vibrationIntensity * 2}deg)`;
+            mainCircle.style.background = `radial-gradient(circle, transparent 60%, rgba(147, 51, 234, ${0.1 + glowIntensity * 0.1}) 100%)`;
+            
+            // Update inner highlight
+            innerHighlight.style.background = `rgba(255, 255, 255, ${0.3 + glowIntensity * 0.2})`;
+            
+            // Update particles
+            if (audioLevelValue > 10) {
+                updateParticles(vibrationIntensity);
+            } else {
+                particles.innerHTML = '';
+            }
+        }
+
+        function updateParticles(intensity) {
+            particles.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'vibration-particle ping';
+                particle.style.transform = `
+                    translate(-50%, -50%) 
+                    rotate(${i * 45}deg) 
+                    translateY(-${150 + intensity * 20}px)
+                `;
+                particle.style.animationDelay = `${i * 0.1}s`;
+                particles.appendChild(particle);
+            }
+        }
+
+        function resetVisuals() {
+            levelFill.style.width = '0%';
+            outerGlow.style.width = '300px';
+            outerGlow.style.height = '300px';
+            outerGlow.style.background = 'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%)';
+            outerGlow.style.transform = 'scale(1)';
+            mainCircle.style.borderColor = 'rgba(147, 51, 234, 0.8)';
+            mainCircle.style.boxShadow = `
+                0 0 20px rgba(147, 51, 234, 0.5),
+                0 0 40px rgba(147, 51, 234, 0.3),
+                0 0 80px rgba(147, 51, 234, 0.1),
+                inset 0 0 20px rgba(147, 51, 234, 0.1)
+            `;
+            mainCircle.style.transform = 'scale(1) rotate(0deg)';
+            mainCircle.style.background = 'radial-gradient(circle, transparent 60%, rgba(147, 51, 234, 0.1) 100%)';
+            innerHighlight.style.background = 'rgba(255, 255, 255, 0.3)';
+            particles.innerHTML = '';
+        }
+
+        micButton.addEventListener('click', () => {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        });
+
+        // Initialize UI
+        updateUI();
+    </script>
+</body>
+</html>
