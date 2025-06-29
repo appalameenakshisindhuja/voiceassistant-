@@ -52,3 +52,31 @@ webdriver-manager
 pytz
 
 # files
+1. contacts.json
+{"name" : phone number with country code}
+2.email.json
+{"name" : email}
+
+3. config.json  # replace with real values
+{
+    "wake_word": "your wake word here",
+    "email": {
+        "smtp_server": "smtp.example.com",
+        "smtp_port": 587,
+        "imap_server": "imap.example.com",
+        "email_address": "your-email@example.com",
+        "password": "your-email-password"
+    },
+    "paths": {
+        "music": "C:\\Path\\To\\Your\\Music",
+        "downloads": "C:\\Path\\To\\Your\\Downloads",
+        "documents": "C:\\Path\\To\\Your\\Documents"
+    },
+    "voice": {
+        "rate": 150,
+        "volume": 1.0,
+        "voice_id": 0
+    }
+}
+4.credentials.json 
+download credentials.json from google calendar
