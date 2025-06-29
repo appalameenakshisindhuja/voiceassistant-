@@ -98,3 +98,5 @@ OCR via pytesseract
 ## 🛑 Disclaimer
 This project is for educational use. Make sure you comply with terms of any APIs or websites you access via scraping or automation.
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
