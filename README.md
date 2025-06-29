@@ -39,18 +39,9 @@ Make sure to also install:
 Tesseract-OCR (for OCR support)
 ChromeDriver (for Selenium, match your Chrome version)
 
-## 📁 Project Structure
+## sample run image 
+![image](image.png)
 
-├── p1.py                  # Main assistant logic
-├── config.json            # Config settings for email, folders, voice
-├── contacts.json          # WhatsApp/email contacts
-├── token.json             # Google Calendar OAuth token
-├── credentials.json       # Google API credentials
-├── learning_data.json     # Learns user preferences
-├── notes.txt              # Saved notes
-├── todo_list.txt          # To-do items
-├── shopping_list.txt      # Shopping items
-├── assistant_log.json     # Logs of past commands
 
 ## 🚀 How to Run
 🖥️ Desktop Mode (default):
