@@ -1,0 +1,44 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# VS Code settings
+.vscode/
+
+# Logs and runtime data
+*.log
+*.tmp
+*.pid
+
+# Web media inputs (audio/video)
+*.webm
+input_upload.webm
+
+# FFmpeg temporary files (optional)
+*.mp4
+*.mp3
+*.wav
+
+# Environment and credential files
+.env
+config.json
+credentials.json
+token.json
+contacts.json
+email.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# ChromeDriver (large binary file)
+chromedriver.exe
+
+# SQLite or other DBs (optional)
+*.db
+*.sqlite3
+
+# Miscellaneous
+notes.txt
+*.bak
